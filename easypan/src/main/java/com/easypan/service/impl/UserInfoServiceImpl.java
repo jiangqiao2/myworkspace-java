@@ -266,7 +266,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         }
 
         emailCodeService.checkCode(email, emailCode);
-        String userId = StringTools.getRandomNumber(Constants.LENGTH_10);
+        String userId = StringTools.getRandomString(Constants.LENGTH_10);
         userInfo = new UserInfo();
         userInfo.setUserId(userId);
         userInfo.setEmail(email);

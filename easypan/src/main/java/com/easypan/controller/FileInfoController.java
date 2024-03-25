@@ -51,7 +51,17 @@ public class FileInfoController extends ABaseController {
 
     @RequestMapping("/uploadFile")
     @GlobalInterceptor(checkParams = true)
-    public ResponseVO uploadFile(HttpSession session, String fileId, MultipartFile file, @VerifyParam(required = true) String fileName, @VerifyParam(required = true) String filePid, @VerifyParam(required = true) String fileMd5, @VerifyParam(required = true) Integer chunkIndex, @VerifyParam(required = true) Integer chunks) {
+    public ResponseVO uploadFile(HttpSession session, String fileId, MultipartFile file,
+
+                                 @VerifyParam(required = true) String fileName,
+
+                                 @VerifyParam(required = true) String filePid,
+
+                                 @VerifyParam(required = true) String fileMd5,
+
+                                 @VerifyParam(required = true) Integer chunkIndex,
+
+                                 @VerifyParam(required = true) Integer chunks) {
 
         SessionWebUserDto sessionWebUserDto = getUserInfoFromSession(session);
         UploadResultDto uploadResultDto = fileInfoService.updaloadFile(sessionWebUserDto, fileId, file, fileName, filePid, fileMd5, chunkIndex, chunks);

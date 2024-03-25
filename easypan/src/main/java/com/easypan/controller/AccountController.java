@@ -81,7 +81,6 @@ public class AccountController extends ABaseController {
     }
 
     /**
-     *
      * @param session
      * @param email
      * @param checkCode
