@@ -37,7 +37,7 @@ public class FileInfoVO {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date recoveryTime;
+    private Date createTime;
 
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
@@ -93,6 +93,14 @@ public class FileInfoVO {
         return fileName;
     }
 
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
@@ -103,14 +111,6 @@ public class FileInfoVO {
 
     public void setFileCover(String fileCover) {
         this.fileCover = fileCover;
-    }
-
-    public Date getRecoveryTime() {
-        return recoveryTime;
-    }
-
-    public void setRecoveryTime(Date recoveryTime) {
-        this.recoveryTime = recoveryTime;
     }
 
     public Integer getFolderType() {

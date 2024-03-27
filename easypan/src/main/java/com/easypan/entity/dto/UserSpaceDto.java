@@ -3,15 +3,15 @@ package com.easypan.entity.dto;
 import java.io.Serializable;
 
 public class UserSpaceDto implements Serializable {
-    private Long userSpace;
+    private Long useSpace;
     private Long totalSpace;
 
-    public Long getUserSpace() {
-        return userSpace;
+    public Long getUseSpace() {
+        return useSpace;
     }
 
-    public void setUserSpace(Long userSpace) {
-        this.userSpace = userSpace;
+    public void setUseSpace(Long useSpace) {
+        this.useSpace = useSpace;
     }
 
     public Long getTotalSpace() {

@@ -7,6 +7,7 @@ import com.easypan.entity.config.AppConfig;
 import com.easypan.entity.constants.Constants;
 import com.easypan.entity.dto.CreateImageCode;
 import com.easypan.entity.dto.SessionWebUserDto;
+import com.easypan.entity.dto.UserSpaceDto;
 import com.easypan.entity.enums.VerifyRegexEnum;
 import com.easypan.entity.po.UserInfo;
 import com.easypan.entity.vo.ResponseVO;
@@ -209,7 +210,9 @@ public class AccountController extends ABaseController {
     @GlobalInterceptor
     public ResponseVO getUseSpace(HttpSession session) {
         SessionWebUserDto sessionWebUserDto = getUserInfoFromSession(session);
-        return getSuccessResponseVO(redisComponent.getUserSpaceUse(sessionWebUserDto.getUserId()));
+        UserSpaceDto userSpaceUse = redisComponent.getUserSpaceUse(sessionWebUserDto.getUserId());
+        logger.info("用户使用空间{}",userSpaceUse.getUseSpace());
+        return getSuccessResponseVO(userSpaceUse);
     }
 
     @RequestMapping("/logout")

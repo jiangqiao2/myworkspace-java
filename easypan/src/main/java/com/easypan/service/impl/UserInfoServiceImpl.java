@@ -308,7 +308,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         } else sessionWebUserDto.setAdmin(false);
         UserSpaceDto userSpaceDto = new UserSpaceDto();
         Long userSpace = fileInfoMapper.selectUseSpace(userInfo.getUserId());
-        userSpaceDto.setUserSpace(userSpace);
+        userSpaceDto.setUseSpace(userSpace);
         userSpaceDto.setTotalSpace(userInfo.getTotalSpace());
         redisCompomnent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDto);
         return sessionWebUserDto;
@@ -368,7 +368,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         } else sessionWebUserDto.setAdmin(false);
         UserSpaceDto userSpaceDto = new UserSpaceDto();
         Long userSpacce = fileInfoMapper.selectUseSpace(user.getUserId());
-        userSpaceDto.setUserSpace(userSpacce);
+        userSpaceDto.setUseSpace(userSpacce);
         userSpaceDto.setTotalSpace(user.getTotalSpace());
         redisCompomnent.saveUserSpaceUse(user.getUserId(), userSpaceDto);
         return sessionWebUserDto;

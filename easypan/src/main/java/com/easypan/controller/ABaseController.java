@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 
 
 public class ABaseController {
@@ -105,7 +106,8 @@ public class ABaseController {
 
     protected <S, T> PaginationResultVO<T> convert2PaginationVO(PaginationResultVO<S> result, Class<T> classz) {
         PaginationResultVO<T> resultVO = new PaginationResultVO<>();
-        resultVO.setList(CopyTools.copyList(resultVO.getList(), classz));
+        List<T> list = CopyTools.copyList(resultVO.getList(), classz);
+        resultVO.setList(list);
         resultVO.setPageNo(result.getPageNo());
         resultVO.setPageSize(result.getPageSize());
         resultVO.setPageTotal(result.getPageTotal());

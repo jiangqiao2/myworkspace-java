@@ -38,8 +38,7 @@ public class RedisCompomnent {
         if (spaceDto == null) {
             spaceDto = new UserSpaceDto();
             Long userSpace = fileInfoMapper.selectUseSpace(userId);
-//            spaceDto
-            spaceDto.setUserSpace(userSpace);
+            spaceDto.setUseSpace(userSpace);
             spaceDto.setTotalSpace(getSysSettingDto().getUserInitUseSpace() * Constants.MB);
             saveUserSpaceUse(userId, spaceDto);
         }
