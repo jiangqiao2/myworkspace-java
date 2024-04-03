@@ -67,6 +67,8 @@ public class AccountController extends ABaseController {
      */
     @RequestMapping(value = "/checkCode")
     public void checkCode(HttpServletResponse response, HttpSession session, Integer type) throws IOException {
+        // 创建验证码图片
+        // 通过response返回给前端
         CreateImageCode vCode = new CreateImageCode(130, 38, 5, 10);
         response.setHeader("Pragma", "no-cache");
         response.setHeader("Cache-Control", "no-cache");

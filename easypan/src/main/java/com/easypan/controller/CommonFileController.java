@@ -1,20 +1,27 @@
 package com.easypan.controller;
 
+import com.easypan.component.RedisCompomnent;
 import com.easypan.entity.config.AppConfig;
 import com.easypan.entity.constants.Constants;
+import com.easypan.entity.dto.DownloadFileDto;
 import com.easypan.entity.enums.FileCategoryEnums;
 import com.easypan.entity.enums.FileFolderTypeEnums;
+import com.easypan.entity.enums.ResponseCodeEnum;
 import com.easypan.entity.po.FileInfo;
 import com.easypan.entity.query.FileInfoQuery;
 import com.easypan.entity.vo.ResponseVO;
+import com.easypan.exception.BusinessException;
 import com.easypan.service.FileInfoService;
 import com.easypan.utils.StringTools;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.bcel.Const;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.ws.Response;
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.List;
 
 public class CommonFileController extends ABaseController {
@@ -24,6 +31,9 @@ public class CommonFileController extends ABaseController {
 
     @Resource
     private FileInfoService fileInfoService;
+
+    @Resource
+    private RedisCompomnent redisCompomnent;
 
     public void getImage(HttpServletResponse response, String imageFolder, String imageName) {
         if (StringTools.isEmpty(imageFolder) || StringTools.isEmpty(imageName)) {
@@ -70,7 +80,7 @@ public class CommonFileController extends ABaseController {
         readFile(response, filePath);
     }
 
-    public ResponseVO getFolderInfo(String path, String userId) {
+    protected ResponseVO getFolderInfo(String path, String userId) {
         String[] pathArray = path.split("/");
         FileInfoQuery fileInfoQuery = new FileInfoQuery();
         fileInfoQuery.setUserId(userId);
@@ -80,5 +90,40 @@ public class CommonFileController extends ABaseController {
         fileInfoQuery.setOrderBy(orderBy);
         List<FileInfo> fileInfoList = fileInfoService.findListByParam(fileInfoQuery);
         return getSuccessResponseVO(fileInfoList);
+    }
+
+    protected ResponseVO createDownloadUrl(String fileId, String userId) {
+        FileInfo fileInfo = fileInfoService.getFileInfoByFileIdAndUserId(fileId, userId);
+        if (fileInfo == null) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        if (FileFolderTypeEnums.FOLDER.getType().equals(fileInfo.getFolderType())) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        String code = StringTools.getRandomString(Constants.LENGTH_50);
+        DownloadFileDto fileDto = new DownloadFileDto();
+        fileDto.setDownloadCode(code);
+        fileDto.setFilePath(fileInfo.getFilePath());
+        fileDto.setFileName(fileInfo.getFileName());
+        redisCompomnent.saveDownloadCode(code, fileDto);
+        return getSuccessResponseVO(code);
+    }
+
+    protected void download(HttpServletRequest request, HttpServletResponse response, String code) throws Exception {
+        DownloadFileDto downloadFileDto = redisCompomnent.getDownloadCode(code);
+        if (null == downloadFileDto) {
+            return;
+        }
+        String filePath = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE + downloadFileDto.getFilePath();
+        String fileName = downloadFileDto.getFileName();
+        response.setContentType("application/x-msdownload; charset=UTF-8");
+        if (request.getHeader("User-Agent").toLowerCase().indexOf("msie") > 0) {//IE浏览器
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+        } else {
+            fileName = new String(fileName.getBytes("UTF-8"), "ISO8859-1");
+        }
+        response.setHeader("Content-Disposition", "attachment;filename=\"" + fileName + "\"");
+        readFile(response, filePath);
+
     }
 }

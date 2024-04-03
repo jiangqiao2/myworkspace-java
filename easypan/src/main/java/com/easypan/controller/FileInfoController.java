@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
@@ -69,6 +71,13 @@ public class FileInfoController extends CommonFileController {
         return resultVO;
     }
 
+    /**
+     * 分页查询
+     * @param session
+     * @param query
+     * @param category
+     * @return
+     */
     @RequestMapping("/loadDataList")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO loadDataList(HttpSession session, FileInfoQuery query, String category) {
@@ -209,4 +218,35 @@ public class FileInfoController extends CommonFileController {
         fileInfoService.changeFileFolder(fileIdS, filePid, webUserDto.getUserId());
         return getSuccessResponseVO(null);
     }
+
+    @RequestMapping("/createDownloadUrl/{fileId}")
+    public ResponseVO createDownloadUrl(HttpSession session, @VerifyParam(required = true) @PathVariable("fileId") String fileId,
+
+                                        @VerifyParam(required = true) String filePid) {
+
+        SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+
+        return super.createDownloadUrl(fileId, webUserDto.getUserId());
+    }
+
+    @RequestMapping("/download/{code}")
+    @GlobalInterceptor(checkParams = true, checkLogin = false)
+    public void dowload(HttpServletRequest request, HttpServletResponse response,
+
+                        @VerifyParam(required = true) @PathVariable("code") String code) throws Exception {
+
+        super.download(request, response, code);
+    }
+
+    @RequestMapping("/delFile")
+    @GlobalInterceptor(checkParams = true, checkLogin = false)
+    public ResponseVO delFile(HttpSession session,
+
+                              @VerifyParam(required = true) @PathVariable("fileIds") String fileIds) throws Exception {
+        SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+        fileInfoService.removeFile2RecycleBatch(webUserDto.getUserId(), fileIds);
+        return null;
+    }
+
+
 }

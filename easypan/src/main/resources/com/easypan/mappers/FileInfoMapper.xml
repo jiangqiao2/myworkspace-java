@@ -153,7 +153,8 @@
                 and file_id in (<foreach collection="query.fileIdArray" item="item" separator=",">#{item}</foreach> )
             </if>
             <if test="query.excludeFileIdArray!=null and query.excludeFileIdArray.length>0">
-                and file_id not in (<foreach collection="query.excludeFileIdArray" item="item" separator=",">#{item}</foreach> )
+                and file_id not in (<foreach collection="query.excludeFileIdArray" item="item" separator=",">#{item}
+            </foreach> )
             </if>
 
         </where>
@@ -722,4 +723,74 @@
         </set>
         where file_id=#{fileId} and user_id=#{userId} and status=#{oldStatus}
     </update>
+
+    <update id="updateFileDelFlagBatch" parameterType="com.easypan.entity.po.FileInfo">
+        UPDATE file_info
+        <set>
+            <if test="bean.fileMd5 != null">
+                file_md5 = #{bean.fileMd5},
+            </if>
+            <if test="bean.filePid != null">
+                file_pid = #{bean.filePid},
+            </if>
+            <if test="bean.fileSize != null">
+                file_size = #{bean.fileSize},
+            </if>
+            <if test="bean.fileName != null">
+                file_name = #{bean.fileName},
+            </if>
+            <if test="bean.fileCover != null">
+                file_cover = #{bean.fileCover},
+            </if>
+            <if test="bean.filePath != null">
+                file_path = #{bean.filePath},
+            </if>
+            <if test="bean.createTime != null">
+                create_time = #{bean.createTime},
+            </if>
+            <if test="bean.lastUpdateTime != null">
+                last_update_time = #{bean.lastUpdateTime},
+            </if>
+            <if test="bean.folderType != null">
+                folder_type = #{bean.folderType},
+            </if>
+            <if test="bean.fileCategory != null">
+                file_category = #{bean.fileCategory},
+            </if>
+            <if test="bean.fileType != null">
+                file_type = #{bean.fileType},
+            </if>
+            <if test="bean.status != null">
+                status = #{bean.status},
+            </if>
+            <if test="bean.recoveryTime != null">
+                recovery_time = #{bean.recoveryTime},
+            </if>
+            <if test="bean.delFlag != null">
+                del_flag = #{bean.delFlag},
+            </if>
+        </set>
+        where user_id=#{userId}
+        <if test="filePidList!=null">
+            and file_pid in (<foreach collection="filePidList" separator="," item="item">#{item}</foreach> )
+        </if>
+        <if test="filePidList!=null">
+            and file_id in (<foreach collection="filePidList" separator="," item="item">#{item}</foreach> )
+        </if>
+        <if test="oldDelFlag!=null">
+            and del_flag=#{oldDelFlag}
+        </if>
+    </update>
+    <delete id="delFileBatch">
+        delete from file_info where user_id=#{userId}
+        <if test="filePidList!=null">
+            and file_pid in (<foreach collection="filePidList" separator="," item="item">#{item}</foreach> )
+        </if>
+        <if test="filePidList!=null">
+            and file_id in (<foreach collection="filePidList" separator="," item="item">#{item}</foreach> )
+        </if>
+        <if test="oldDelFlag!=null">
+            and del_flag=#{oldDelFlag}
+        </if>
+    </delete>
 </mapper>
