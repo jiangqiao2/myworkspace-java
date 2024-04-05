@@ -37,27 +37,6 @@ public class ABaseController {
         return responseVO;
     }
 
-    protected <T> ResponseVO getBusinessErrorResponseVO(BusinessException e, T t) {
-        ResponseVO vo = new ResponseVO();
-        vo.setStatus(STATUC_ERROR);
-        if (e.getCode() == null) {
-            vo.setCode(ResponseCodeEnum.CODE_600.getCode());
-        } else {
-            vo.setCode(e.getCode());
-        }
-        vo.setInfo(e.getMessage());
-        vo.setData(t);
-        return vo;
-    }
-
-    protected <T> ResponseVO getServerErrorResponseVO(T t) {
-        ResponseVO vo = new ResponseVO();
-        vo.setStatus(STATUC_ERROR);
-        vo.setCode(ResponseCodeEnum.CODE_500.getCode());
-        vo.setInfo(ResponseCodeEnum.CODE_500.getMsg());
-        vo.setData(t);
-        return vo;
-    }
 
     protected void readFile(HttpServletResponse response, String filePath) {
         if (!StringTools.pathIsOk(filePath)) {
@@ -106,7 +85,7 @@ public class ABaseController {
 
     protected <S, T> PaginationResultVO<T> convert2PaginationVO(PaginationResultVO<S> result, Class<T> classz) {
         PaginationResultVO<T> resultVO = new PaginationResultVO<>();
-        List<T> list = CopyTools.copyList(resultVO.getList(), classz);
+        List<T> list = CopyTools.copyList(result.getList(), classz);
         resultVO.setList(list);
         resultVO.setPageNo(result.getPageNo());
         resultVO.setPageSize(result.getPageSize());

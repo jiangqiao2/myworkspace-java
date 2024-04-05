@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -88,9 +87,8 @@ public class FileInfoController extends CommonFileController {
         query.setUserId(getUserInfoFromSession(session).getUserId());
         query.setOrderBy("last_update_time desc");
         query.setDelFlag(FileDelFlagEnums.USING.getFlag());
-        PaginationResultVO<FileInfo> result = fileInfoService.findListByPage(query);
-        PaginationResultVO<FileInfoVO> resultVO = getFileInfoVo(result);
-        return getSuccessResponseVO(resultVO);
+        PaginationResultVO result = fileInfoService.findListByPage(query);
+        return getSuccessResponseVO(convert2PaginationVO(result, FileInfoVO.class));
     }
 
     @RequestMapping("/uploadFile")

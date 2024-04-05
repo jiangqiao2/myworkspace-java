@@ -309,6 +309,7 @@ public class FileInfoServiceImpl implements FileInfoService {
     /**
      * 文件转码，将切片文件合并
      * 同时异步请求，加快速度
+     *
      * @param fileId
      * @param webUserDto
      */
@@ -462,6 +463,7 @@ public class FileInfoServiceImpl implements FileInfoService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public FileInfo newFolder(String filePid, String userId, String folderName) {
         checkFileName(filePid, userId, folderName, FileFolderTypeEnums.FOLDER.getType());
         Date date = new Date();
@@ -476,6 +478,16 @@ public class FileInfoServiceImpl implements FileInfoService {
         fileInfo.setStatus(FileStatusEnums.USING.getStatus());
         fileInfo.setDelFlag(FileDelFlagEnums.USING.getFlag());
         this.fileInfoMapper.insert(fileInfo);
+        FileInfoQuery fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setFilePid(filePid);
+        fileInfoQuery.setUserId(userId);
+        fileInfoQuery.setFileName(folderName);
+        fileInfoQuery.setFolderType(FileFolderTypeEnums.FOLDER.getType());
+        fileInfoQuery.setDelFlag(FileDelFlagEnums.USING.getFlag());
+        Integer count = this.fileInfoMapper.selectCount(fileInfoQuery);
+        if (count > 1) {
+            throw new BusinessException("文件夹" + folderName + "已经存在");
+        }
         fileInfo.setFileName(folderName);
         fileInfo.setLastUpdateTime(date);
         return fileInfo;
