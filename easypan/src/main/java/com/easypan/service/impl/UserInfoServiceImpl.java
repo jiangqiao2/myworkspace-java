@@ -247,7 +247,9 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     /**
      * 注册
-     *
+     *判断邮箱，用户名是否已经存在
+     * 将用户可用空间存进redis种
+     * 更新数据库
      * @param email     邮箱
      * @param nickName  用户名
      * @param password  密码
@@ -275,6 +277,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         userInfo.setJoinTime(new Date());
         userInfo.setStatus(UserStatusEnum.ENABLE.getStatus());
         userInfo.setUseSpace(0L);
+        // 将用户空间进行初始化
         SysSettingsDto sysSettingsDto = redisCompomnent.getSysSettingDto();
         userInfo.setTotalSpace(sysSettingsDto.getUserInitUseSpace() * Constants.MB);
         this.userInfoMapper.insert(userInfo);
@@ -285,7 +288,7 @@ public class UserInfoServiceImpl implements UserInfoService {
      *
      * @param email    邮箱
      * @param password 密码
-     * @return
+     * @return 将session信息返回
      */
     @Override
     public SessionWebUserDto login(String email, String password) {
@@ -297,12 +300,14 @@ public class UserInfoServiceImpl implements UserInfoService {
             throw new BusinessException("账号已禁用");
         }
         UserInfo updateuserInfo = new UserInfo();
-        //更新修改时间
+        //更新最后登录时间
         updateuserInfo.setLastLoginTime(new Date());
         this.userInfoMapper.updateByUserId(updateuserInfo, userInfo.getUserId());
         SessionWebUserDto sessionWebUserDto = new SessionWebUserDto();
+        // session存入id
         sessionWebUserDto.setNickName(userInfo.getNickName());
         sessionWebUserDto.setUserId(userInfo.getUserId());
+        // 判断是不是管理员账号
         if (ArrayUtils.contains(appConfig.getAdminEmails().split(","), email)) {
             sessionWebUserDto.setAdmin(true);
         } else sessionWebUserDto.setAdmin(false);

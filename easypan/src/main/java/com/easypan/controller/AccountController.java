@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -59,10 +58,11 @@ public class AccountController extends ABaseController {
 
     /**
      * 验证码
+     * 图片验证码不正确，需要把session删除本次图片验证码的记录，再次重新获取图片验证码
      *
      * @param response
-     * @param session
-     * @param type
+     * @param session  将图片验证码存在session里面，以便后面判断图片验证码是否一致
+     * @param type     0 表示登录注册， 1表示邮箱验证码发送
      * @throws IOException
      */
     @RequestMapping(value = "/checkCode")
@@ -84,9 +84,11 @@ public class AccountController extends ABaseController {
     }
 
     /**
-     * @param session
-     * @param email
-     * @param checkCode
+     * 发送邮箱验证码
+     *
+     * @param session   用于检查图片验证码是否一致
+     * @param email     邮箱
+     * @param checkCode 用户输入的图片验证码
      * @param type
      * @return
      */
@@ -94,32 +96,42 @@ public class AccountController extends ABaseController {
     @GlobalInterceptor(checkLogin = false, checkParams = true)
     public ResponseVO sendEmailCode(HttpSession session, @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email, @VerifyParam(required = true) String checkCode, @VerifyParam(required = true) Integer type) {
         try {
+            // 检验图片验证码是否正确
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY_EMAIL))) {
                 throw new BusinessException("图片验证码不正确");
             }
+            // 发送邮箱验证码
             emailCodeService.sendEmailCode(email, type);
             return getSuccessResponseVO(null);
         } finally {
+            // 图片验证码不正确，重新获取验证码
             session.removeAttribute(Constants.CHECK_CODE_KEY_EMAIL);
         }
     }
 
     /**
-     * @param session
-     * @param email
-     * @param nickName
-     * @param password
-     * @param checkCode
-     * @param emailCode
+     * 注册
+     *
+     * @param session   图片验证码信息
+     * @param email     邮箱
+     * @param nickName  用户名
+     * @param password  密码
+     * @param checkCode 图片验证码
+     * @param emailCode 邮箱验证码
      * @return
      */
     @RequestMapping("/register")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
-    public ResponseVO register(HttpSession session, @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email, @VerifyParam(required = true, max = 20) String nickName, @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min = 8, max = 18) String password, @VerifyParam(required = true) String checkCode, @VerifyParam(required = true) String emailCode) {
+    public ResponseVO register(HttpSession session, @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email,
+
+                               @VerifyParam(required = true, max = 20) String nickName, @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min = 8, max = 18) String password,
+
+                               @VerifyParam(required = true) String checkCode, @VerifyParam(required = true) String emailCode) {
         try {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY))) {
                 throw new BusinessException("图片验证码不正确");
             }
+            // 注册
             userInfoService.register(email, nickName, password, emailCode);
             return getSuccessResponseVO(null);
         } finally {
@@ -128,16 +140,17 @@ public class AccountController extends ABaseController {
     }
 
     /**
-     * @param session
-     * @param request
-     * @param email
-     * @param password
-     * @param checkCode
+     * 登录之后，将session、存储此时用户信息
+     *
+     * @param session   图片验证码信息
+     * @param email     邮箱
+     * @param password  密码
+     * @param checkCode 图片验证码
      * @return
      */
     @RequestMapping("/login")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
-    public ResponseVO login(HttpSession session, HttpServletRequest request, @VerifyParam(required = true) String email, @VerifyParam(required = true) String password, @VerifyParam(required = true) String checkCode) {
+    public ResponseVO login(HttpSession session, @VerifyParam(required = true) String email, @VerifyParam(required = true) String password, @VerifyParam(required = true) String checkCode) {
         try {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY))) {
                 throw new BusinessException("图片验证码不正确");
@@ -150,6 +163,16 @@ public class AccountController extends ABaseController {
         }
     }
 
+    /**
+     * 重置密码
+     *
+     * @param session   图片验证码信息
+     * @param email     邮箱
+     * @param password  密码
+     * @param checkCode 图片验证码
+     * @param emailCode 邮箱验证码
+     * @return
+     */
     @RequestMapping("/resetPwd")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
     public ResponseVO resetPwd(HttpSession session, @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email, @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min = 8, max = 18) String password, @VerifyParam(required = true) String checkCode, @VerifyParam(required = true) String emailCode) {
@@ -164,15 +187,21 @@ public class AccountController extends ABaseController {
         }
     }
 
+    /**
+     * 得到用户头像，没有设置头像使用默认头像
+     *
+     * @param response 给前端返回的数据
+     * @param userId   用户名
+     */
     @RequestMapping("/getAvatar/{userId}")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
     public void getAvatar(HttpServletResponse response, @VerifyParam(required = true) @PathVariable("userId") String userId) {
         String avatarFolderName = Constants.FILE_FOLDER_FILE + Constants.FILE_FOLDER_AVATAR_NAME;
         File folder = new File(appConfig.getProjectFolder() + avatarFolderName);
+        // 存放头像的文件目录
         if (!folder.exists()) {
             folder.mkdirs();
         }
-
         String avatarPath = appConfig.getProjectFolder() + avatarFolderName + userId + Constants.AVATAR_SUFFIX;
         File file = new File(avatarPath);
         if (!file.exists()) {
@@ -201,6 +230,12 @@ public class AccountController extends ABaseController {
         }
     }
 
+    /**
+     * 得到用户信息
+     *
+     * @param session 登录之后返回的session
+     * @return
+     */
     @RequestMapping("/getUserInfo")
     @GlobalInterceptor
     public ResponseVO getUserInfo(HttpSession session) {
@@ -213,7 +248,6 @@ public class AccountController extends ABaseController {
     public ResponseVO getUseSpace(HttpSession session) {
         SessionWebUserDto sessionWebUserDto = getUserInfoFromSession(session);
         UserSpaceDto userSpaceUse = redisComponent.getUserSpaceUse(sessionWebUserDto.getUserId());
-        logger.info("用户使用空间{}",userSpaceUse.getUseSpace());
         return getSuccessResponseVO(userSpaceUse);
     }
 
@@ -223,7 +257,12 @@ public class AccountController extends ABaseController {
         return getSuccessResponseVO(null);
     }
 
-
+    /**
+     * 更换头像
+     * @param session
+     * @param avatar 图片文件
+     * @return
+     */
     @RequestMapping("/updateUserAvatar")
     @GlobalInterceptor
     public ResponseVO updateUserAvatar(HttpSession session, MultipartFile avatar) {

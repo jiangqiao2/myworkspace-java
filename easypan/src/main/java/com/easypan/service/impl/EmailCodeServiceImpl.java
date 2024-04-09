@@ -28,6 +28,7 @@ import javax.annotation.Resource;
 import javax.mail.internet.MimeMessage;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -164,7 +165,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void sendEmailCode(String toEmail, Integer type) {
-        if (type == Constants.ZERO) {
+        if (Objects.equals(type, Constants.ZERO)) {
             UserInfo userInfo = userInfoMapper.selectByEmail(toEmail);
             if (null != userInfo) {
                 throw new BusinessException("邮箱已经存在");
